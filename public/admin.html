@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - The Green Field</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-body">
+    <!-- Login Screen -->
+    <div id="adminLoginScreen" class="admin-login-screen">
+        <div class="admin-login-container">
+            <div class="admin-login-header">
+                <h1>⚽ The Green Field Admin</h1>
+                <p>Secure Administration Panel</p>
+            </div>
+            <form id="adminLoginForm" class="admin-login-form">
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="adminEmail" placeholder="Admin Email" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="adminPassword" placeholder="Admin Password" required class="form-input">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Secure Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <div class="sidebar-header">
+                <h2>⚽ Admin Panel</h2>
+                <span id="adminUserName"></span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-section="bookings">
+                    <i class="fas fa-calendar"></i> Bookings
+                </a>
+                <a href="#" class="nav-item" data-section="customers">
+                    <i class="fas fa-users"></i> Customers
+                </a>
+                <a href="#" class="nav-item" data-section="payments">
+                    <i class="fas fa-credit-card"></i> Payments
+                </a>
+                <a href="#" class="nav-item" data-section="updates">
+                    <i class="fas fa-bullhorn"></i> Updates
+                </a>
+                <a href="#" class="nav-item" data-section="analytics">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </a>
+                <a href="#" class="nav-item" onclick="adminLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <!-- Dashboard Section -->
+            <div id="dashboardSection" class="content-section active">
+                <div class="section-header">
+                    <h2>Dashboard Overview</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="refreshDashboard()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="todayBookings">0</h3>
+                            <p>Today's Bookings</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="todayRevenue">৳0</h3>
+                            <p>Today's Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="pendingApprovals">0</h3>
+                            <p>Pending Approvals</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="weeklyBookings">0</h3>
+                            <p>This Week</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-card">
+                        <h4>Monthly Revenue Trend</h4>
+                        <canvas id="revenueChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Section -->
+            <div id="bookingsSection" class="content-section">
+                <div class="section-header">
+                    <h2>Booking Management</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="showManualBookingModal()">
+                            <i class="fas fa-plus"></i> Manual Booking
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadBookings()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="booking-filters">
+                    <select id="statusFilter" class="form-input">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                    <input type="date" id="dateFilter" class="form-input">
+                    <select id="groundFilter" class="form-input">
+                        <option value="">All Grounds</option>
+                        <option value="1">Ground 1 (Football)</option>
+                        <option value="2">Ground 2 (Cricket)</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="loadBookings()">Filter</button>
+                </div>
+
+                <div class="bookings-table-container">
+                    <table id="bookingsTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Ground</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Duration</th>
+                                <th>Players</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <!-- Bookings will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Other sections will be loaded similarly -->
+            <div id="customersSection" class="content-section">
+                <div class="section-header">
+                    <h2>Customer Management</h2>
+                </div>
+                <div id="customersContainer">
+                    <!-- Customers will be loaded here -->
+                </div>
+            </div>
+
+            <div id="paymentsSection" class="content-section">
+                <div class="section-header">
+                    <h2>Payment Verification</h2>
+                </div>
+                <div id="paymentsContainer">
+                    <!-- Payment verifications will be loaded here -->
+                </div>
+            </div>
+                        <button class="btn btn-sm btn-outline" onclick="updateBookingStatus(${booking.id}, 'cancelled')">
+            <div id="updatesSection" class="content-section">
+                <div class="section-header">
+                    <h2>Content Management</h2>
+                    <button class="btn btn-primary" onclick="showAddUpdateModal()">
+                        <i class="fas fa-plus"></i> Add Update
+                    </button>
+                </div>
+                <div id="updatesManagementContainer">
+                    <!-- Updates management will be loaded here -->
+                </div>
+            </div>
+
+            <div id="analyticsSection" class="content-section">
+                <div class="section-header">
+                    <h2>Analytics & Reports</h2>
+                </div>
+                <div class="analytics-grid">
+                    <div class="chart-card">
+                        <h4>Popular Time Slots</h4>
+                        <canvas id="popularSlotsChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Ground Utilization</h4>
+                        <canvas id="groundUtilizationChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="bookingDetailsModal" class="modal">
+        <div class="modal-content modal-wide">
+            <span class="close">&times;</span>
+            <h3>Booking Details</h3>
+            <div id="bookingDetailsContainer">
+                <!-- Booking details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Details Modal -->
+    <div id="customerDetailsModal" class="modal">
+        <div class="modal-content modal-wide">
+            <span class="close">&times;</span>
+            <h3>Customer Details</h3>
+            <div id="customerDetailsContainer">
+                <!-- Customer details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Update Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="updateModalTitle">Add New Update</h3>
+            <form id="updateForm">
+                <input type="hidden" id="updateId">
+                <div class="form-group">
+                    <label for="updateTitle">Title</label>
+                    <input type="text" id="updateTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateContent">Content</label>
+                    <textarea id="updateContent" class="form-input" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="updateImageUrl">Image URL (Optional)</label>
+                    <input type="url" id="updateImageUrl" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="updateIsFeatured"> Featured Update
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-save"></i> Save Update
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manual Booking Modal -->
+    <div id="manualBookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Create Manual Booking</h3>
+            <form id="manualBookingForm">
+                <div class="form-row">
+                    <input type="text" id="manualCustomerName" placeholder="Customer Name" required class="form-input">
+                    <input type="tel" id="manualCustomerPhone" placeholder="Phone Number" required class="form-input">
+                </div>
+                <div class="form-row">
+                    <select id="manualGroundNumber" class="form-input" required>
+                        <option value="">Select Ground</option>
+                        <option value="1">Ground 1 (Football)</option>
+                        <option value="2">Ground 2 (Cricket)</option>
+                    </select>
+                    <input type="date" id="manualBookingDate" class="form-input" required>
+                </div>
+                <div class="form-row">
+                    <input type="time" id="manualStartTime" class="form-input" required>
+                    <input type="time" id="manualEndTime" class="form-input" required>
+                </div>
+                <div class="form-row">
+                    <select id="manualPlayerCount" class="form-input" required>
+                        <option value="">Number of Players</option>
+                        <option value="7">7 players</option>
+                        <option value="11">11 players</option>
+                        <option value="14">14 players</option>
+                        <option value="22">22 players</option>
+                    </select>
+                    <input type="number" id="manualTotalAmount" placeholder="Amount (৳)" class="form-input" required>
+                </div>
+                <textarea id="manualNotes" placeholder="Notes (Optional)" class="form-input" rows="3"></textarea>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-check"></i> Create Booking
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
