@@ -394,6 +394,25 @@ router.get('/updates', (req, res) => {
   });
 });
 
+// Get single update
+router.get('/updates/:id', (req, res) => {
+  const { id } = req.params;
+  const db = getDatabase();
+  
+  db.get('SELECT * FROM updates WHERE id = ?', [id], (err, row) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (!row) {
+      return res.status(404).json({ error: 'Update not found' });
+    }
+    
+    res.json(row);
+  });
+});
+
 // Create new update
 router.post('/updates', [
   body('title').notEmpty().trim().escape(),

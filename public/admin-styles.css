@@ -696,6 +696,22 @@
     font-size: 0.9rem;
 }
 
+.featured-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+/* Customer Actions */
+.customer-actions {
+    border-top: 1px solid var(--gray-200);
+    padding-top: 16px;
+}
+
 /* Form improvements */
 .form-group label {
     display: block;

@@ -193,12 +193,15 @@
             <div id="paymentsSection" class="content-section">
                 <div class="section-header">
                     <h2>Payment Verification</h2>
+                    <button class="btn btn-secondary" onclick="loadPayments()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
                 </div>
                 <div id="paymentsContainer">
                     <!-- Payment verifications will be loaded here -->
                 </div>
             </div>
-                        <button class="btn btn-sm btn-outline" onclick="updateBookingStatus(${booking.id}, 'cancelled')">
+
             <div id="updatesSection" class="content-section">
                 <div class="section-header">
                     <h2>Content Management</h2>
@@ -214,6 +217,9 @@
             <div id="analyticsSection" class="content-section">
                 <div class="section-header">
                     <h2>Analytics & Reports</h2>
+                    <button class="btn btn-secondary" onclick="loadAnalytics()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
                 </div>
                 <div class="analytics-grid">
                     <div class="chart-card">

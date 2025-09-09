@@ -32,6 +32,9 @@ function setupAdminEventListeners() {
     // Manual booking ground change
     document.getElementById('manualGroundNumber').addEventListener('change', updateManualPlayerOptions);
     
+    // Update form handler
+    document.getElementById('updateForm').addEventListener('submit', handleUpdateSubmit);
+    
     // Modal close handlers
     document.querySelectorAll('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', (e) => {
@@ -598,6 +601,11 @@ function displayCustomers(customers) {
                     </div>
                 </div>
             </div>
+            <div class="customer-actions" style="margin-top: 16px; text-align: center;">
+                <button class="btn btn-sm btn-secondary" onclick="viewCustomerDetails(${customer.id})">
+                    <i class="fas fa-eye"></i> View Details
+                </button>
+            </div>
         </div>
     `).join('');
 }
@@ -674,7 +682,7 @@ function displayPaymentVerifications(bookings) {
             </div>
             ${booking.payment_screenshot ? `
                 <div style="margin: 16px 0;">
-                    <img src="/uploads/payments/${booking.payment_screenshot}" class="payment-screenshot" alt="Payment Screenshot" style="max-width: 300px; border-radius: 8px; margin-top: 8px; cursor: pointer;" data-screenshot="${booking.payment_screenshot}">
+                    <img src="/uploads/payments/${booking.payment_screenshot}" class="payment-screenshot" alt="Payment Screenshot" style="max-width: 300px; border-radius: 8px; margin-top: 8px; cursor: pointer;" onclick="viewPaymentScreenshot('${booking.payment_screenshot}')">
                 </div>
             ` : ''}
             <div class="booking-actions">
@@ -829,6 +837,17 @@ async function loadUpdatesManagement() {
 function displayUpdatesManagement(updates) {
     const container = document.getElementById('updatesManagementContainer');
     
+    if (updates.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-bullhorn"></i>
+                <h3>No Updates Found</h3>
+                <p>No updates have been created yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
     container.innerHTML = `
         <div class="updates-management">
             ${updates.map(update => `
@@ -840,9 +859,13 @@ function displayUpdatesManagement(updates) {
                             <button class="btn btn-sm btn-outline" onclick="editUpdate(${update.id})">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            <button class="btn btn-sm btn-outline" style="color: #dc2626; border-color: #dc2626;" onclick="deleteUpdate(${update.id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
                     <p>${update.content}</p>
+                    ${update.image_url ? `<img src="${update.image_url}" alt="${update.title}" style="max-width: 200px; border-radius: 8px; margin: 12px 0;">` : ''}
                     <div class="update-meta">
                         <span>${new Date(update.created_at).toLocaleDateString()}</span>
                     </div>
@@ -854,12 +877,115 @@ function displayUpdatesManagement(updates) {
 
 // Show add update modal
 function showAddUpdateModal() {
-    showAdminMessage('Update management feature coming soon', 'warning');
+    document.getElementById('updateModalTitle').textContent = 'Add New Update';
+    document.getElementById('updateForm').reset();
+    document.getElementById('updateId').value = '';
+    document.getElementById('updateModal').style.display = 'block';
 }
 
 // Edit update
 function editUpdate(updateId) {
-    showAdminMessage('Edit update feature coming soon', 'warning');
+    // Fetch update details and populate form
+    fetch(`${API_BASE}/admin/updates/${updateId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(response => response.json())
+    .then(update => {
+        if (update.error) {
+            showAdminMessage(update.error, 'error');
+            return;
+        }
+        
+        document.getElementById('updateModalTitle').textContent = 'Edit Update';
+        document.getElementById('updateId').value = update.id;
+        document.getElementById('updateTitle').value = update.title;
+        document.getElementById('updateContent').value = update.content;
+        document.getElementById('updateImageUrl').value = update.image_url || '';
+        document.getElementById('updateIsFeatured').checked = update.is_featured;
+        document.getElementById('updateModal').style.display = 'block';
+    })
+    .catch(error => {
+        console.error('Error fetching update:', error);
+        showAdminMessage('Failed to load update details', 'error');
+    });
+}
+
+// Handle update form submission
+async function handleUpdateSubmit(e) {
+    e.preventDefault();
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showAdminMessage('Please login first', 'error');
+        return;
+    }
+    
+    const updateId = document.getElementById('updateId').value;
+    const formData = {
+        title: document.getElementById('updateTitle').value,
+        content: document.getElementById('updateContent').value,
+        imageUrl: document.getElementById('updateImageUrl').value,
+        isFeatured: document.getElementById('updateIsFeatured').checked
+    };
+    
+    const isEdit = updateId !== '';
+    const url = isEdit ? `${API_BASE}/admin/updates/${updateId}` : `${API_BASE}/admin/updates`;
+    const method = isEdit ? 'PUT' : 'POST';
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAdminMessage(isEdit ? 'Update updated successfully' : 'Update created successfully', 'success');
+            document.getElementById('updateModal').style.display = 'none';
+            loadUpdatesManagement();
+        } else {
+            showAdminMessage(data.error || 'Failed to save update', 'error');
+        }
+    } catch (error) {
+        console.error('Update save error:', error);
+        showAdminMessage('Failed to save update', 'error');
+    }
+}
+
+// Delete update
+async function deleteUpdate(updateId) {
+    if (!confirm('Are you sure you want to delete this update?')) {
+        return;
+    }
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showAdminMessage('Please login first', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/updates/${updateId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            showAdminMessage('Update deleted successfully', 'success');
+            loadUpdatesManagement();
+        } else {
+            const data = await response.json();
+            showAdminMessage(data.error || 'Failed to delete update', 'error');
+        }
+    } catch (error) {
+        console.error('Delete update error:', error);
+        showAdminMessage('Failed to delete update', 'error');
+    }
 }
 
 // View booking details
