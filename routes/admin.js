@@ -30,8 +30,9 @@ router.get('/dashboard', (req, res) => {
       db.get(`
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
         FROM bookings 
-        WHERE booking_date = ? AND booking_status != 'cancelled'
+        WHERE DATE(booking_date) = DATE(?) AND booking_status = 'confirmed'
       `, [today], (err, row) => {
+        console.log('Today query result:', row);
         if (err) reject(err);
         else resolve(row);
       });
@@ -42,8 +43,9 @@ router.get('/dashboard', (req, res) => {
       db.get(`
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
         FROM bookings 
-        WHERE booking_date >= ? AND booking_status != 'cancelled'
+        WHERE DATE(booking_date) >= DATE(?) AND booking_status = 'confirmed'
       `, [thisWeek], (err, row) => {
+        console.log('Weekly query result:', row);
         if (err) reject(err);
         else resolve(row);
       });
@@ -54,8 +56,9 @@ router.get('/dashboard', (req, res) => {
       db.get(`
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
         FROM bookings 
-        WHERE booking_date >= ? AND booking_status != 'cancelled'
+        WHERE DATE(booking_date) >= DATE(?) AND booking_status = 'confirmed'
       `, [thisMonth], (err, row) => {
+        console.log('Monthly query result:', row);
         if (err) reject(err);
         else resolve(row);
       });
@@ -80,11 +83,13 @@ router.get('/dashboard', (req, res) => {
                COUNT(*) as bookings, 
                COALESCE(SUM(total_amount), 0) as revenue
         FROM bookings
-        WHERE booking_status != 'cancelled'
+        WHERE booking_status = 'confirmed'
+        AND booking_date IS NOT NULL
         GROUP BY month
         ORDER BY month DESC
         LIMIT 12
       `, (err, rows) => {
+        console.log('Monthly revenue query result:', rows);
         if (err) reject(err);
         else resolve(rows);
       });
@@ -192,6 +197,8 @@ router.put('/bookings/:id/status', [
   const { status, paymentStatus } = req.body;
   const db = getDatabase();
 
+  console.log(`Updating booking ${id} to status: ${status}, paymentStatus: ${paymentStatus}`);
+
   let query = 'UPDATE bookings SET booking_status = ?';
   const params = [status];
 
@@ -203,6 +210,8 @@ router.put('/bookings/:id/status', [
   query += ' WHERE id = ?';
   params.push(id);
 
+  console.log('Executing query:', query, 'with params:', params);
+
   db.run(query, params, function(err) {
     if (err) {
       console.error('Database error:', err);
@@ -213,6 +222,7 @@ router.put('/bookings/:id/status', [
       return res.status(404).json({ error: 'Booking not found' });
     }
 
+    console.log(`Successfully updated booking ${id}. Changes: ${this.changes}`);
     res.json({ message: 'Booking updated successfully' });
   });
 });

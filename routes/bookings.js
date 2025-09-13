@@ -255,14 +255,19 @@ router.get('/my-bookings', authenticateToken, (req, res) => {
   const query = `
     SELECT * FROM bookings 
     WHERE user_id = ? 
+    AND booking_status != 'cancelled'
     ORDER BY booking_date DESC, start_time DESC
   `;
+
+  console.log('Fetching bookings for user:', req.user.userId);
 
   db.all(query, [req.user.userId], (err, rows) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Database error' });
     }
+    console.log('Found bookings for user:', rows.length);
+    console.log('Booking statuses:', rows.map(b => ({ id: b.id, status: b.booking_status })));
     res.json(rows);
   });
 });

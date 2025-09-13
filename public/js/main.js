@@ -644,6 +644,8 @@ function displayMyBookings(bookings) {
         return;
     }
     
+    console.log('Displaying bookings:', bookings);
+    
     container.innerHTML = bookings.map(booking => `
         <div class="booking-card">
             <div class="booking-header">
@@ -680,6 +682,12 @@ function displayMyBookings(bookings) {
                 </div>
             </div>
             ${booking.notes ? `<p class="booking-notes"><strong>Notes:</strong> ${booking.notes}</p>` : ''}
+            ${booking.booking_status === 'confirmed' ? `
+                <div class="booking-confirmed-message">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Your booking has been confirmed! See you at the ground.</span>
+                </div>
+            ` : ''}
             ${booking.booking_status === 'pending' ? `
                 <div class="booking-actions">
                     <button class="btn btn-sm btn-outline" onclick="cancelBooking(${booking.id})">
