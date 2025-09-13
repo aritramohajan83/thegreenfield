@@ -255,7 +255,6 @@ router.get('/my-bookings', authenticateToken, (req, res) => {
   const query = `
     SELECT * FROM bookings 
     WHERE user_id = ? 
-    AND booking_status != 'cancelled'
     ORDER BY booking_date DESC, start_time DESC
   `;
 
@@ -266,9 +265,13 @@ router.get('/my-bookings', authenticateToken, (req, res) => {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Database error' });
     }
-    console.log('Found bookings for user:', rows.length);
-    console.log('Booking statuses:', rows.map(b => ({ id: b.id, status: b.booking_status })));
-    res.json(rows);
+    
+    // Filter out cancelled bookings but keep confirmed ones
+    const activeBookings = rows.filter(booking => booking.booking_status !== 'cancelled');
+    
+    console.log('Found bookings for user:', activeBookings.length);
+    console.log('Booking statuses:', activeBookings.map(b => ({ id: b.id, status: b.booking_status })));
+    res.json(activeBookings);
   });
 });
 

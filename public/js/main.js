@@ -685,7 +685,7 @@ function displayMyBookings(bookings) {
             ${booking.booking_status === 'confirmed' ? `
                 <div class="booking-confirmed-message">
                     <i class="fas fa-check-circle"></i>
-                    <span>Your booking has been confirmed! See you at the ground.</span>
+                    <span>Booking Confirmed! See you at the ground on ${new Date(booking.booking_date).toLocaleDateString()} at ${booking.start_time}.</span>
                 </div>
             ` : ''}
             ${booking.booking_status === 'pending' ? `

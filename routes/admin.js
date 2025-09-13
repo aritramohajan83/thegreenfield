@@ -28,9 +28,11 @@ router.get('/dashboard', (req, res) => {
     // Today's bookings
     new Promise((resolve, reject) => {
       db.get(`
-        SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
+        SELECT 
+          COUNT(*) as count, 
+          COALESCE(SUM(CASE WHEN booking_status = 'confirmed' THEN total_amount ELSE 0 END), 0) as revenue 
         FROM bookings 
-        WHERE DATE(booking_date) = DATE(?) AND booking_status = 'confirmed'
+        WHERE DATE(booking_date) = DATE(?)
       `, [today], (err, row) => {
         console.log('Today query result:', row);
         if (err) reject(err);
@@ -41,9 +43,11 @@ router.get('/dashboard', (req, res) => {
     // Weekly stats
     new Promise((resolve, reject) => {
       db.get(`
-        SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
+        SELECT 
+          COUNT(*) as count, 
+          COALESCE(SUM(CASE WHEN booking_status = 'confirmed' THEN total_amount ELSE 0 END), 0) as revenue 
         FROM bookings 
-        WHERE DATE(booking_date) >= DATE(?) AND booking_status = 'confirmed'
+        WHERE DATE(booking_date) >= DATE(?)
       `, [thisWeek], (err, row) => {
         console.log('Weekly query result:', row);
         if (err) reject(err);
@@ -54,9 +58,11 @@ router.get('/dashboard', (req, res) => {
     // Monthly stats
     new Promise((resolve, reject) => {
       db.get(`
-        SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
+        SELECT 
+          COUNT(*) as count, 
+          COALESCE(SUM(CASE WHEN booking_status = 'confirmed' THEN total_amount ELSE 0 END), 0) as revenue 
         FROM bookings 
-        WHERE DATE(booking_date) >= DATE(?) AND booking_status = 'confirmed'
+        WHERE DATE(booking_date) >= DATE(?)
       `, [thisMonth], (err, row) => {
         console.log('Monthly query result:', row);
         if (err) reject(err);

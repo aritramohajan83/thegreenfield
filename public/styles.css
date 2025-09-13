@@ -964,10 +964,12 @@ h4 { font-size: 1.25rem; }
     align-items: center;
     gap: 8px;
     font-weight: 500;
+    border: 2px solid #86efac;
 }
 
 .booking-confirmed-message i {
     font-size: 1.2rem;
+    color: #16a34a;
 }
 
 /* Responsive Design */
